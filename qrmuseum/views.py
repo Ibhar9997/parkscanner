@@ -78,7 +78,7 @@ def registro(request):
         form = RegistroUsuarioForm(request.POST)
         if form.is_valid():
             usuario = form.save()
-            messages.success(request, f'✅ Cuenta creada exitosamente. ¡Bienvenido {usuario.first_name or usuario.username}!')
+            messages.success(request, f'Cuenta creada exitosamente. ¡Bienvenido {usuario.first_name or usuario.username}!')
             return redirect('login')
     
     return render(request, 'registro.html', {'form': form})
@@ -98,10 +98,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            messages.success(request, f'✅ ¡Bienvenido {user.first_name or user.username}!')
+            messages.success(request, f'Bienvenido {user.first_name or user.username}!')
             return redirect('inicio')
         else:
-            error = '❌ Usuario o contraseña incorrectos'
+            error = 'Usuario o contraseña incorrectos'
     
     return render(request, 'login.html', {'error': error})
 
@@ -109,7 +109,7 @@ def login_view(request):
 def logout_view(request):
     """Cerrar sesión"""
     logout(request)
-    messages.success(request, '✅ Sesión cerrada correctamente')
+    messages.success(request, 'Sesión cerrada correctamente')
     return redirect('inicio')
 
 
@@ -121,7 +121,7 @@ def escanear_qr(request):
         return redirect('login')
     
     data = {
-        'titulo': '🎯 Escanear Código QR'
+        'titulo': 'Escanear Código QR'
     }
     return render(request, 'escanear_qr.html', data)
 
@@ -137,13 +137,14 @@ def procesar_qr(request, uuid_qr):
             qr_visitado=qr
         )
         
+        #AQUI SE DICTA EL PUNTAJE (LÍNEA 145-147)
         # Actualizar estadísticas del usuario
         try:
             usuario_museo = request.user.perfil_museo
-            if creado:
+            if creado:  # Solo si es PRIMERA VEZ que escanea este QR
                 usuario_museo.total_qrs_escaneados += 1
-                usuario_museo.puntos += 10
-                usuario_museo.save()
+                usuario_museo.puntos += 10  # ← SUMA 10 PUNTOS POR CADA QR NUEVO
+                usuario_museo.save()  # ← Se guarda en la base de datos
         except UsuarioMuseo.DoesNotExist:
             pass
     
@@ -187,7 +188,7 @@ def agregar_comentario(request, qr_id):
             except UsuarioMuseo.DoesNotExist:
                 pass
             
-            messages.success(request, '✅ Comentario agregado correctamente')
+            messages.success(request, 'Comentario agregado correctamente')
             return redirect('contenido_qr', uuid_qr=qr.id_unico)
     
     return redirect('contenido_qr', uuid_qr=qr.id_unico)
@@ -229,7 +230,7 @@ def editar_perfil(request):
         form = PerfilUsuarioMuseoForm(request.POST, request.FILES, instance=usuario_museo)
         if form.is_valid():
             form.save()
-            messages.success(request, '✅ Perfil actualizado correctamente')
+            messages.success(request, 'Perfil actualizado correctamente')
             return redirect('mi_progreso')
     else:
         form = PerfilUsuarioMuseoForm(instance=usuario_museo)
@@ -297,7 +298,7 @@ def admin_crear_qr(request):
         form = QRCodeForm(request.POST)
         if form.is_valid():
             qr = form.save()
-            messages.success(request, f'✅ Código QR "{qr.titulo}" creado exitosamente')
+            messages.success(request, f'Código QR "{qr.titulo}" creado exitosamente')
             return redirect('admin_editar_qr', qr_id=qr.id)
     else:
         form = QRCodeForm()
@@ -321,7 +322,7 @@ def admin_editar_qr(request, qr_id):
         form = QRCodeForm(request.POST, instance=qr)
         if form.is_valid():
             form.save()
-            messages.success(request, f'✅ Código QR "{qr.titulo}" actualizado')
+            messages.success(request, f'Código QR "{qr.titulo}" actualizado')
             return redirect('admin_qrs_list')
     else:
         form = QRCodeForm(instance=qr)
@@ -349,7 +350,7 @@ def admin_eliminar_qr(request, qr_id):
     if request.method == 'POST':
         titulo = qr.titulo
         qr.delete()
-        messages.success(request, f'✅ Código QR "{titulo}" eliminado correctamente')
+        messages.success(request, f'Código QR "{titulo}" eliminado correctamente')
         return redirect('admin_qrs_list')
     
     data = {
@@ -373,7 +374,7 @@ def admin_contenido_qr(request, qr_id):
             contenido = form.save(commit=False)
             contenido.qr = qr
             contenido.save()
-            messages.success(request, '✅ Contenido actualizado correctamente')
+            messages.success(request, 'Contenido actualizado correctamente')
             return redirect('admin_editar_qr', qr_id=qr.id)
     else:
         form = ContenidoQRForm(instance=contenido)
@@ -429,10 +430,10 @@ def admin_moderar_comentario(request, comentario_id):
         if accion == 'aprobar':
             comentario.moderado = True
             comentario.save()
-            messages.success(request, '✅ Comentario aprobado')
+            messages.success(request, 'Comentario aprobado')
         elif accion == 'rechazar':
             comentario.delete()
-            messages.success(request, '✅ Comentario eliminado')
+            messages.success(request, 'Comentario eliminado')
         
         return redirect('admin_comentarios')
     
@@ -454,7 +455,7 @@ def admin_configuracion(request):
         form = MuseoConfigForm(request.POST, request.FILES, instance=config)
         if form.is_valid():
             form.save()
-            messages.success(request, '✅ Configuración del museo actualizada')
+            messages.success(request, 'Configuración del museo actualizada')
             return redirect('admin_dashboard')
     else:
         form = MuseoConfigForm(instance=config)

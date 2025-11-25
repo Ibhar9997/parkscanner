@@ -249,7 +249,7 @@ class UsuarioMuseo(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_museo')
     apodo_juego = models.CharField(max_length=100, blank=True)
     avatar = models.ImageField(upload_to='avatares/', blank=True, null=True)
-    puntos = models.IntegerField(default=0)
+    puntos = models.IntegerField(default=0)  #  AQUI SE GUARDA EL PUNTAJE - Se actualiza en views.py procesar_qr()
     nivel = models.IntegerField(default=1)
     
     # Estadísticas
